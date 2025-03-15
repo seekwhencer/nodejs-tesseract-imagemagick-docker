@@ -55,5 +55,36 @@ Just edit the `app/globals.js`
 > You can place a new pdf file on runtime somewhere in the source folder. The app starts instantly the recognition process.
 
 ## Next
+I dont know... strapi? mysql? sqlite? json? (it is **json** at the moment) 
 
+## But
+
+The regex and the following transformation to extract the data is especially made for a PDF Kontoauszug from the Deutsche Bank.
+To change it, just edit the file: `app/ioFile.js` and change the regex and the post processing.
+
+```js
+transform() {
+    const regex = /^(?<date_a>\d{2}\.\d{2}\.?)\s+(?<date_b>\d{2}\.\d{2}\.?)\s+(?<title>.+?)\s+(?<amount>[+-]\s?\d{1,3}(?:\.\d{3})*,\d{2})\r?\n+?^(?<year_a>\d{4})\s+(?<year_b>\d{4})\s+(?<info>(?:(?!\d{2}\.\d{2}\.?\s+\d{2}\.\d{2}).*(?:\r?\n|$))*)/gm
+    
+    const rawData = [...this.raw.matchAll(regex)].map(match => ({
+        date_a: match?.groups?.date_a?.trim(),
+        date_b: match?.groups?.date_b?.trim(),
+        year_a: match?.groups?.year_a?.trim(),
+        year_b: match?.groups?.year_b?.trim(),
+        title: match?.groups?.title?.trim(),
+        amount: match?.groups?.amount?.replace(/\s/g, '').replace('.', '').replace(',', '.'),
+        info: match?.groups?.info?.trim().replace(/\r?\n/g, ' ').split('BIC (SWIFT) DEUTDEDBLEG')[0].split('Fillalnummer')[0]
+    }));
+    
+    this.data = rawData.map(i => {
+        return {
+            date_a: `${i?.date_a}${i?.year_a}`,
+            date_b: `${i?.date_b}${i?.year_b}`,
+            title: i?.title,
+            amount: parseFloat(i?.amount),
+            info: i?.info
+        }
+    });
+}
+```
  
