@@ -1,0 +1,15 @@
+services:
+  kaz_tesseract:
+    image: kaz
+    working_dir: /kaz
+    build:
+      context: .
+    container_name: kaz
+    # override tesseracts entrypoint
+    entrypoint: "npm start"
+    volumes:
+      - ./source:/kaz/source:ro
+      - ./target:/kaz/target
+      - /kaz/node_modules
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro

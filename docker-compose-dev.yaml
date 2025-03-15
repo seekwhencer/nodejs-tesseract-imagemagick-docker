@@ -1,0 +1,17 @@
+services:
+  kaz_tesseract:
+    extends:
+      file: docker-compose.yaml
+      service: kaz_tesseract
+
+    # just run:
+    #   docker exec -it kaz /bin/sh
+    #   npm start
+    # or
+    #   docker exec -it kaz /bin/sh -c "npm start"
+
+    entrypoint: 'tail -f /dev/null'
+    volumes:
+      - ./app:/kaz/app
+      - ./package.json:/kaz/package.json
+      - ./package-lock.json:/kaz/package-lock.json

@@ -1,0 +1,7 @@
+.idea
+node_modules
+source/**
+target/**
+
+!source/.keep
+!target/.keep
