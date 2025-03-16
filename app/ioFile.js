@@ -118,6 +118,7 @@ export default class KazIOFile extends KazEvents {
         if (this.recognized !== false)
             return;
 
+        this.checkAndCreateFolder();
         LOG('RECOGNIZING', this.pages, 'PAGES FROM', this.name);
         this.raw = '';
         this.recognizeOne(0);
@@ -144,16 +145,49 @@ export default class KazIOFile extends KazEvents {
     }
 
     saveData() {
-        const realPathData = `${this.targetRootPath}/data/${this.baseName}.json`;
         this.transform();
 
-        try {
-            writeFileSync(realPathData, JSON.stringify(this.data));
-            this.emit('data-saved');
-        } catch (err) {
-            console.error(err);
-            this.emit('data-saved');
-        }
+        const proms = [
+            this.saveJSON(),
+            this.saveCSV()
+        ];
+
+        //@TODO catch errors
+        Promise.all(proms).then(() => this.emit('data-saved')).catch(() => this.emit('data-saved'));
+    }
+
+    saveJSON() {
+        return new Promise((resolve, reject) => {
+            const realPathData = `${this.targetRootPath}/data/${this.baseName}.json`;
+            try {
+                writeFileSync(realPathData, JSON.stringify(this.data));
+                this.emit('json-saved'); //@TODO
+                resolve();
+            } catch (err) {
+                console.error(err);
+                reject(err);
+            }
+        });
+    }
+
+    saveCSV() {
+        return new Promise((resolve, reject) => {
+            const realPathData = `${this.targetRootPath}/data/${this.baseName}.csv`;
+
+            const data = this.data.map(i => {
+                Object.keys(i).forEach(k => typeof i[k] === 'string' ? i[k] = i[k].replaceAll(KAZ.CSV_SEPARATOR, KAZ.CSV_REPLACEMENT) : null);
+                return Object.values(i).join(KAZ.CSV_SEPARATOR);
+            }).join('\n');
+
+            try {
+                writeFileSync(realPathData, data);
+                this.emit('csv-saved'); //@TODO
+                resolve();
+            } catch (err) {
+                console.error(err);
+                reject(err);
+            }
+        });
     }
 
     transform() {
