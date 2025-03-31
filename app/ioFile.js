@@ -153,7 +153,7 @@ export default class KazIOFile extends KazEvents {
         ];
 
         //@TODO catch errors
-        Promise.all(proms).then(() => this.emit('data-saved')).catch(() => this.emit('data-saved'));
+        Promise.allSettled(proms).then(() => this.emit('data-saved')).catch((e) => this.emit('data-saved'));
     }
 
     saveJSON() {
